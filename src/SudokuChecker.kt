@@ -1,87 +1,44 @@
-fun testValidSudoku9x9() {
-    val board = arrayOf(
-        arrayOf('5', '3', '4', '6', '7', '8', '9', '1', '2'),
-        arrayOf('6', '7', '2', '1', '9', '5', '3', '4', '8'),
-        arrayOf('1', '9', '8', '3', '4', '2', '5', '6', '7'),
-        arrayOf('8', '5', '9', '7', '6', '1', '4', '2', '3'),
-        arrayOf('4', '2', '6', '8', '5', '3', '7', '9', '1'),
-        arrayOf('7', '1', '3', '9', '2', '4', '8', '5', '6'),
-        arrayOf('9', '6', '1', '5', '3', '7', '2', '8', '4'),
-        arrayOf('2', '8', '7', '4', '1', '9', '6', '3', '5'),
-        arrayOf('3', '4', '5', '2', '8', '6', '1', '7', '9')
-    )
-    println("Test valid Sudoku (9x9): ${checkSudoku(board)}")
-}
-fun testValidEmptyCell() {
-    val board = arrayOf(
-        arrayOf('5', '3', '-', '-', '7', '-', '-', '-', '-'),
-        arrayOf('6', '-', '-', '1', '9', '5', '-', '-', '-'),
-        arrayOf('-', '9', '8', '-', '-', '-', '-', '6', '-'),
-        arrayOf('8', '-', '-', '-', '6', '-', '-', '-', '3'),
-        arrayOf('4', '-', '-', '8', '-', '3', '-', '-', '1'),
-        arrayOf('7', '-', '-', '-', '2', '-', '-', '-', '6'),
-        arrayOf('-', '6', '-', '-', '-', '-', '2', '8', '-'),
-        arrayOf('-', '-', '-', '4', '1', '9', '-', '-', '5'),
-        arrayOf('-', '-', '-', '-', '8', '-', '-', '7', '9')
-    )
-    println("Test valid Sudoku (9x9): ${checkSudoku(board)}")
-}
-fun testInvalidSudokuRow() {
-    val board = arrayOf(
-        arrayOf('5', '3', '4', '6', '7', '8', '9', '1', '2'),
-        arrayOf('6', '7', '2', '1', '9', '5', '3', '4', '8'),
-        arrayOf('1', '9', '8', '3', '4', '2', '5', '6', '7'),
-        arrayOf('8', '5', '9', '7', '6', '1', '4', '2', '3'),
-        arrayOf('4', '2', '6', '8', '5', '3', '7', '9', '1'),
-        arrayOf('7', '1', '3', '9', '2', '4', '8', '5', '6'),
-        arrayOf('9', '6', '1', '5', '3', '7', '2', '8', '4'),
-        arrayOf('2', '8', '7', '4', '1', '9', '6', '3', '5'),
-        arrayOf('3', '4', '5', '2', '8', '6', '1', '7', '5')
-    )
-    println("Test invalid Sudoku (row): ${checkSudoku(board)}")
+import kotlin.math.sqrt
+
+
+fun runSudokuTest(name : String, board: List<List<Char>>, expectedResult : Boolean){
+    val actualResult = checkSudoku(board)
+    val status = if (expectedResult == actualResult)"pass" else "fail"
+    println("$status | $name | Expected: $expectedResult, Got: $actualResult")
 }
 
-fun testInvalidSudokuColumn() {
-    val board = arrayOf(
-        arrayOf('5', '3', '4', '6', '7', '8', '9', '1', '2'),
-        arrayOf('6', '7', '2', '1', '9', '5', '3', '4', '8'),
-        arrayOf('1', '9', '8', '3', '4', '2', '5', '6', '7'),
-        arrayOf('8', '5', '9', '7', '6', '1', '4', '2', '3'),
-        arrayOf('4', '2', '6', '8', '5', '3', '7', '9', '1'),
-        arrayOf('7', '1', '3', '9', '2', '4', '8', '5', '6'),
-        arrayOf('9', '6', '1', '5', '3', '7', '2', '8', '1'),
-        arrayOf('2', '8', '7', '4', '1', '9', '6', '3', '5'),
-        arrayOf('3', '4', '5', '2', '8', '6', '1', '7', '9')
-    )
+fun checkSudoku(board: List<List<Char>>): Boolean {
+    val size = board.size
+    val boxSize = sqrt(size.toDouble()).toInt()
 
-    println("Test invalid Sudoku (column): ${checkSudoku(board)}")
-}
+    fun isValidGroup(group: List<Char>): Boolean {
+        val seen = mutableSetOf<Char>()
+        for (num in group) {
+            if (num != '-' && !seen.add(num)) return false
+        }
+        return true
+    }
 
-fun testEmptyPuzzle() {
-    val board = Array(9) { Array(9) { '-' } }
-    println("Test empty Sudoku: ${checkSudoku(board)}")
-}
+    for (row in board) {
+        if (!isValidGroup(row)) return false
+    }
 
-fun testValidSudoku4x4() {
-    val board = arrayOf(
-        arrayOf('1', '2', '3', '4'),
-        arrayOf('3', '4', '1', '2'),
-        arrayOf('2', '3', '4', '1'),
-        arrayOf('4', '1', '2', '3')
-    )
-    println("Test valid Sudoku (4x4): ${checkSudoku(board)}")
-}
+    for (col in 0..<size) {
+        val column = board.map { it[col] }
+        if (!isValidGroup(column)) return false
+    }
 
-fun testInvalidSudoku4x4Row() {
-    val board = arrayOf(
-        arrayOf('1', '2', '3', '4'),
-        arrayOf('3', '4', '1', '2'),
-        arrayOf('2', '3', '4', '1'),
-        arrayOf('4', '1', '2', '2')
-    )
-    println("Test invalid Sudoku (4x4 row): ${checkSudoku(board)}")
-}
+    for (row in 0..<size step boxSize) {
+        for (col in 0..<size step boxSize) {
+            val subgrid = mutableListOf<Char>()
+            for (r in 0..<boxSize) {
+                for (c in 0..<boxSize) {
+                    subgrid.add(board[row + r][col + c])
+                }
+            }
+            if (!isValidGroup(subgrid)) return false
+        }
+    }
 
-fun checkSudoku(board: Array<Array<Char>>): Boolean {
-    return false
+    return true
 }
